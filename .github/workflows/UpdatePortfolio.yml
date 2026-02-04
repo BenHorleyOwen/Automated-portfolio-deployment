@@ -1,0 +1,27 @@
+name: Push to Portfolio
+on:
+  workflow_dispatch:
+
+jobs:
+  example-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo to runner.
+        uses: actions/checkout@v4
+        with:
+          path: source
+
+      - name: checkout profile
+        uses: actions/checkout@v4
+        with:
+          repository: BenHorleyOwen/BenHorleyOwen
+          path: profile
+          token: ${{ secrets.TOKEN }}
+
+      - name: Python setup.
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: create output file
+        run: python ./source/.github/scripts/pagesscript.py --source ./source/vaults/Technology/Projects --destination ./profile
