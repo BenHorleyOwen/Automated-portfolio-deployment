@@ -6,8 +6,6 @@ import shutil
 """Script to generate README.md from presentable files in a repository.
 Looks for files marked with 'presentable' in frontmatter and extracts
 presentation sections to compile into a README.md using a template.
-test command (short): python .github/scripts/readmescript.py --source D:\obsidian\vaults\vaults\Technology\Projects --destination ./profile --description-only
-test command (full):  python3 .github/scripts/readmescript.py --source D:\obsidian\vaults\vaults\Technology\Projects --destination ./profile
 """
 
 def parse_frontmatter(content):
