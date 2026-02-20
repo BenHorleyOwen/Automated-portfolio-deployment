@@ -37,16 +37,6 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.13'
-      - name: Debug vaults structure
-        run: |
-          echo "=== vaults root ==="
-          ls ./vaults
-          echo "=== vaults/vaults ==="
-          ls ./vaults/vaults || echo "no vaults/vaults dir"
-          echo "=== Technology ==="
-          ls ./vaults/Technology || echo "no Technology dir"
-          echo "=== vaults/Technology ==="
-          ls ./vaults/vaults/Technology || echo "no vaults/vaults/Technology dir"
       - name: Create output dir
         run: python ./source/.github/scripts/readmescript.py --source ./vaults/${{ inputs.source_path }} --destination ./profile --description-only
       - name: Push to README if changes present.
