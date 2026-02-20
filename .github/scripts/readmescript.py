@@ -60,7 +60,7 @@ parser.add_argument('--source', type=str, required=True, help='Path to source di
 args = parser.parse_args()
 destination_path = args.destination
 source_path = args.source
-template_path = './.github/scripts/Template.md'
+template_path = os.path.join(os.path.dirname(__file__), 'Template.md') #assumes template is in same directory as script
 
 #generate README content
 presentable_files = search_for_presentable_files(source_path)
