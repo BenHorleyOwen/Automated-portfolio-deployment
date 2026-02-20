@@ -38,7 +38,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Create output dir
-        run: python ./source/.github/scripts/readmescript.py --source ./vaults/${{ inputs.source_path }} --destination ./profile
+        run: python ./source/.github/scripts/readmescript.py --source ./vaults/${{ inputs.source_path }} --destination ./profile --description-only
       - name: Push to README if changes present.
         shell: bash
         env:

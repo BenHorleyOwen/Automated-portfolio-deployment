@@ -1,33 +1,44 @@
-
-## as of yet, unmade, jsut based off of the readme one, will need to call a different script to generate the portfolio pages, and will need to be triggered by a different workflow, but should be able to reuse most of the code from the readme workflow
+## github reusable workflow which should be called from the obsidian vault repo
 name: Push to Portfolio
 on:
-  workflow_dispatch:
-
+  workflow_call:
+    inputs:
+      source_path:
+        type: string
+        required: true
+      destination_repo:
+        type: string
+        required: true
+    secrets:
+      TOKEN:
+        required: true
 jobs:
   example-job:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo to runner.
+      - name: Checkout workflow repo (scripts)
         uses: actions/checkout@v4
         with:
+          repository: BenHorleyOwen/Automated-portfolio-deployment
           path: source
-
-      - name: checkout profile
+      - name: Checkout ObsidianVaults (content)
         uses: actions/checkout@v4
         with:
-          repository: BenHorleyOwen/BenHorleyOwen
+          repository: BenHorleyOwen/BenHorleyOwen.github.io
+          path: vaults
+          token: ${{ secrets.TOKEN }}
+      - name: Checkout profile
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.destination_repo }}
           path: profile
           token: ${{ secrets.TOKEN }}
-
       - name: Python setup.
         uses: actions/setup-python@v6
         with:
           python-version: '3.13'
-
-      - name: create output dir
-        run: python ./source/.github/scripts/pagesscript.py --source ./source/vaults/Technology/Projects --destination ./profile
-
+      - name: Create output dir
+        run: python ./source/.github/scripts/readmescript.py --source ./vaults/${{ inputs.source_path }} --destination ./profile
       - name: Push to README if changes present.
         shell: bash
         env:
@@ -43,7 +54,6 @@ jobs:
             git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
             git push
           else
-            # No changes, though i think it will always be considered differently
             echo "no changes to latest posts"
             exit 0
           fi
