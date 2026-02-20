@@ -1,14 +1,6 @@
 ## github reusable workflow which should be called from the obsidian vault repo
 name: Push to README
 on:
-  workflow_dispatch:
-    inputs:
-      source_path:
-        description: 'Path to source vault'
-        required: true
-      destination_repo:
-        description: 'Target repository'
-        required: true
   workflow_call:
     inputs:
       source_path:
