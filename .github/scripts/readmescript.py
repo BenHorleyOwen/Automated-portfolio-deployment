@@ -1,14 +1,14 @@
 import os
 import re
 import argparse
+import shutil
 
 """Script to generate README.md from presentable files in a repository.
 Looks for files marked with 'presentable' in frontmatter and extracts
 presentation sections to compile into a README.md using a template.
-test command: python3 .github/scripts/readmescript.py --source ./vaults/Technology/Projects --destination ./profile
+test command (short): python .github/scripts/readmescript.py --source D:\obsidian\vaults\vaults\Technology\Projects --destination ./profile --description-only
+test command (full):  python3 .github/scripts/readmescript.py --source D:\obsidian\vaults\vaults\Technology\Projects --destination ./profile
 """
-
-DESCRIPTION_ONLY = True  # Set to False to include all content under # Presentation
 
 def parse_frontmatter(content):
     """Extract frontmatter fields from a markdown file."""
@@ -67,7 +67,7 @@ def extract_presentation_sections(file_paths, description_only=False):
     :return: list of tuples (file_title, github_url, section_content)
     """
     sections = []
-    pattern = re.compile(r'(?im)^(#{1,6})\s*presentation\s*$\n(.*?)(?=^\1(?:[^#]|\Z)|\Z)', re.DOTALL)
+    pattern = re.compile(r'(?m)^# Presentation\s*\n(.*?)(?=^# |\Z)', re.DOTALL)
     for file_path in file_paths:
         file_title = os.path.splitext(os.path.basename(file_path))[0]
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -75,7 +75,7 @@ def extract_presentation_sections(file_paths, description_only=False):
         frontmatter = parse_frontmatter(content)
         github_url = frontmatter.get('github', None)
         for match in pattern.finditer(content):
-            section_content = match.group(2).strip()
+            section_content = match.group(1).strip()
             if description_only:
                 section_content = extract_description_only(section_content)
             section_content = shift_headings(section_content, shift_by=2)
@@ -85,6 +85,7 @@ def extract_presentation_sections(file_paths, description_only=False):
 parser = argparse.ArgumentParser(description='Generate README from presentable files.')
 parser.add_argument('--destination', type=str, required=True, help='Path to output directory')
 parser.add_argument('--source', type=str, required=True, help='Path to source directory')
+parser.add_argument('--description-only', action='store_true', default=False, help='Only extract the Description section rather than the full Presentation block')
 args = parser.parse_args()
 
 destination_path = args.destination
@@ -93,7 +94,7 @@ template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Templa
 
 # generate README content
 presentable_files = search_for_presentable_files(source_path)
-presentation_sections = extract_presentation_sections(presentable_files, description_only=DESCRIPTION_ONLY)
+presentation_sections = extract_presentation_sections(presentable_files, description_only=args.description_only)
 
 # write README
 os.makedirs(destination_path, exist_ok=True)
