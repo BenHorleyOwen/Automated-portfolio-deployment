@@ -1,3 +1,5 @@
+
+## as of yet, unmade, jsut based off of the readme one, will need to call a different script to generate the portfolio pages, and will need to be triggered by a different workflow, but should be able to reuse most of the code from the readme workflow
 name: Push to Portfolio
 on:
   workflow_dispatch:

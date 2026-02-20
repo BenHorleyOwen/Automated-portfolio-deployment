@@ -12,15 +12,20 @@ on:
     secrets:
       TOKEN:
         required: true
-
 jobs:
   example-job:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo to runner.
+      - name: Checkout workflow repo (scripts)
         uses: actions/checkout@v4
         with:
           path: source
+      - name: Checkout ObsidianVaults (content)
+        uses: actions/checkout@v4
+        with:
+          repository: BenHorleyOwen/ObsidianVaults
+          path: vaults
+          token: ${{ secrets.TOKEN }}
       - name: Checkout profile
         uses: actions/checkout@v4
         with:
@@ -32,7 +37,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Create output dir
-        run: python ./source/.github/scripts/readmescript.py --source ${{ inputs.source_path }} --destination ./profile
+        run: python ./source/.github/scripts/readmescript.py --source ./vaults/${{ inputs.source_path }} --destination ./profile
       - name: Push to README if changes present.
         shell: bash
         env:
