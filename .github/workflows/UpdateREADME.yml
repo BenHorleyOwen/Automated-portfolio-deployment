@@ -19,6 +19,7 @@ jobs:
       - name: Checkout workflow repo (scripts)
         uses: actions/checkout@v4
         with:
+          repository: BenHorleyOwen/Automated-portfolio-deployment
           path: source
       - name: Checkout ObsidianVaults (content)
         uses: actions/checkout@v4
