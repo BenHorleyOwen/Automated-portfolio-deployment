@@ -8,6 +8,8 @@ presentation sections to compile into a README.md using a template.
 test command: python3 .github/scripts/readmescript.py --source ./vaults/Technology/Projects --destination ./profile
 """
 
+DESCRIPTION_ONLY = True  # Set to False to include all content under # Presentation
+
 def parse_frontmatter(content):
     """Extract frontmatter fields from a markdown file."""
     frontmatter = {}
@@ -46,14 +48,26 @@ def shift_headings(content, shift_by):
         return '#' * new_level + match.group(2)
     return re.sub(r'^(#{1,6})([\s#])', replacer, content, flags=re.MULTILINE)
 
-def extract_presentation_sections(file_paths):
+def extract_description_only(content_under_presentation):
+    """Extract only the content under the ## Description heading."""
+    match = re.search(
+        r'(?im)^#{1,6}\s*description\s*$\n(.*?)(?=^#{1,6}\s|\Z)',
+        content_under_presentation,
+        re.DOTALL
+    )
+    if match:
+        return match.group(1).strip()
+    return content_under_presentation.strip()
+
+def extract_presentation_sections(file_paths, description_only=False):
     """
     Extract presentation sections from files.
     :param file_paths: list of file paths to extract presentation sections from
+    :param description_only: if True, only extract content under ## Description
     :return: list of tuples (file_title, github_url, section_content)
     """
     sections = []
-    pattern = re.compile(r'(?im)^#{1,6}\s*presentation\s*$\n(.*?)(?=^#{1,6}\s|\Z)', re.DOTALL)
+    pattern = re.compile(r'(?im)^(#{1,6})\s*presentation\s*$\n(.*?)(?=^\1(?:[^#]|\Z)|\Z)', re.DOTALL)
     for file_path in file_paths:
         file_title = os.path.splitext(os.path.basename(file_path))[0]
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -61,7 +75,9 @@ def extract_presentation_sections(file_paths):
         frontmatter = parse_frontmatter(content)
         github_url = frontmatter.get('github', None)
         for match in pattern.finditer(content):
-            section_content = match.group(1).strip()
+            section_content = match.group(2).strip()
+            if description_only:
+                section_content = extract_description_only(section_content)
             section_content = shift_headings(section_content, shift_by=2)
             sections.append((file_title, github_url, section_content))
     return sections
@@ -77,7 +93,7 @@ template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Templa
 
 # generate README content
 presentable_files = search_for_presentable_files(source_path)
-presentation_sections = extract_presentation_sections(presentable_files)
+presentation_sections = extract_presentation_sections(presentable_files, description_only=DESCRIPTION_ONLY)
 
 # write README
 os.makedirs(destination_path, exist_ok=True)
