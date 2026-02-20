@@ -5,18 +5,23 @@ import argparse
 """Script to generate README.md from presentable files in a repository.
 Looks for files marked with 'presentable' in frontmatter and extracts
 presentation sections to compile into a README.md using a template.
-potential improvements:
-- customize tags to search for in frontmatter and sections to extract
-- pull file names and organises by project ID
-- add github project hyperlink compatability
 test command: python3 .github/scripts/readmescript.py --source ./vaults/Technology/Projects --destination ./profile
 """
 
+def parse_frontmatter(content):
+    """Extract frontmatter fields from a markdown file."""
+    frontmatter = {}
+    match = re.match(r'^---\s*\n(.*?)\n---', content, re.DOTALL)
+    if match:
+        for line in match.group(1).splitlines():
+            if ':' in line:
+                key, _, value = line.partition(':')
+                frontmatter[key.strip()] = value.strip()
+    return frontmatter
+
 def search_for_presentable_files(repo_path):
     """
-    Docstring for search_for_presentable_files
-    could be modified to search for other tags as needed
-    
+    Search for files marked with 'presentable' in frontmatter.
     :param repo_path: path to the repository to search
     :return: list of file paths that are marked as presentable
     """
@@ -34,21 +39,31 @@ def search_for_presentable_files(repo_path):
                     presentable_files.append(file_path)
     return presentable_files
 
+def shift_headings(content, shift_by):
+    """Shift all markdown headings down by shift_by levels."""
+    def replacer(match):
+        new_level = min(len(match.group(1)) + shift_by, 6)
+        return '#' * new_level + match.group(2)
+    return re.sub(r'^(#{1,6})([\s#])', replacer, content, flags=re.MULTILINE)
+
 def extract_presentation_sections(file_paths):
     """
-    Docstring for extract_presentation_sections
-    could be modified to extract other sections as needed
+    Extract presentation sections from files.
     :param file_paths: list of file paths to extract presentation sections from
-    :return: list of tuples (file_title, section_content)
+    :return: list of tuples (file_title, github_url, section_content)
     """
     sections = []
-    pattern = re.compile(r'(?im)^(#{1,6})\s*presentation\s*$.*?(?=^(?!\1#)\1\s|^\Z)', re.DOTALL)
+    pattern = re.compile(r'(?im)^#{1,6}\s*presentation\s*$\n(.*?)(?=^#{1,6}\s|\Z)', re.DOTALL)
     for file_path in file_paths:
         file_title = os.path.splitext(os.path.basename(file_path))[0]
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
-            for match in pattern.finditer(content):
-                sections.append((file_title, match.group(0).strip()))
+        frontmatter = parse_frontmatter(content)
+        github_url = frontmatter.get('github', None)
+        for match in pattern.finditer(content):
+            section_content = match.group(1).strip()
+            section_content = shift_headings(section_content, shift_by=2)
+            sections.append((file_title, github_url, section_content))
     return sections
 
 parser = argparse.ArgumentParser(description='Generate README from presentable files.')
@@ -64,7 +79,7 @@ template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Templa
 presentable_files = search_for_presentable_files(source_path)
 presentation_sections = extract_presentation_sections(presentable_files)
 
-# open template and save results to README.md in destination
+# write README
 os.makedirs(destination_path, exist_ok=True)
 readme_path = os.path.join(destination_path, 'README.md')
 
@@ -73,8 +88,11 @@ with open(template_path, 'r', encoding='utf-8') as template_file:
 
 with open(readme_path, 'w', encoding='utf-8') as readme_file:
     readme_file.write(template_content + "\n\n")
-    for file_title, section in presentation_sections:
-        readme_file.write(f"## {file_title}\n\n")
+    for file_title, github_url, section in presentation_sections:
+        if github_url:
+            readme_file.write(f"### [{file_title}]({github_url})\n\n")
+        else:
+            readme_file.write(f"### {file_title}\n\n")
         readme_file.write(section + "\n\n---\n\n")
 
 print(f'Generated README at {readme_path} from {len(presentation_sections)} sections.')
