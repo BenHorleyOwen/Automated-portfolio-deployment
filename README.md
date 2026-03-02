@@ -12,3 +12,8 @@ the script works by pulling markdown documents tagged as presentable in the fron
 examples of this script working present on my profile README and portfolio page:
 - https://github.com/BenHorleyOwen
 - https://github.com/BenHorleyOwen/BenHorleyOwen.github.io
+
+## Future implementation 
+- I need to modify the readme script such that it can parse presentable pages tagged with index.
+- index pages have an index section, each one eith a nested subheading, which needs to be parsed and added under compose files as a bulletpoint list in the structure: - {PAGETITLE}(github link embed): {DESCRIPTION}.
+- each entry under an index might have a github link in the front matter, this needs to be added to the title.
