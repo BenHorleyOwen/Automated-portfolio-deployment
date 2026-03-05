@@ -173,6 +173,7 @@ with open(readme_path, 'w', encoding='utf-8') as readme_file: # generate README 
     for file in presentable_files:
         extractor_instance.extract_presentable(file)
         readme_file.write(f"### {file.section_content}\n\n")
+        readme_file.write("\n\n---\n\n")
 
 print(f'Generated README at {readme_path} from {len(presentable_files)} sections.')
 
