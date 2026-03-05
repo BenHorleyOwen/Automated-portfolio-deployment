@@ -39,27 +39,24 @@ def search_for_presentable_files(repo_path):
     return presentable_files
 
 
-def walk_index_sections(file_obj):
+def walk_index_sections(file_obj, repo_path):
     """
     Walk through index sections and extract md links.
     md links are followed and their content is extracted.
     :param file_obj: file object to walk index sections from
+    :param repo_path: path to the repository to resolve linked files
     :return: list of file objects that are linked in index sections with their extracted content
     """
     subprojects = []
-    pattern = re.compile(r'(?m)^# Index\s*\n(.*?)(?=^# |\Z)', re.DOTALL) # regex pattern for matching index section in the file content, ensures that we are only looking at the index section of the file 
-    link_pattern = re.compile(r'\[([^\]]+)\]\(([^)]+)\)') # regex pattern for matching markdown links in the index section   
-    for match in pattern.finditer(link_pattern.sub(lambda m: f"[[{m.group(1)}|{m.group(2)}]]", file_obj.content)):
-        subprojects.append(file_object(match.group(2).strip())) 
+    pattern = re.compile(r'(?m)^## Index\s*\n(.*?)(?=^# |\Z)', re.DOTALL)
+    link_pattern = re.compile(r'\[\[([^\]|]+)(?:\|[^\]]*)?\]\]')
+
+    for section_match in pattern.finditer(file_obj.content):
+        section_body = section_match.group(1)
+        for link_match in link_pattern.finditer(section_body):
+            subpath = os.path.join(repo_path, f"{link_match.group(1)}.md")
+            subprojects.append(file_object(subpath))
     return subprojects
-
-
-def shift_headings(content, shift_by):
-    """Shift all markdown headings down by shift_by levels."""
-    def replacer(match):
-        new_level = min(len(match.group(1)) + shift_by, 6)
-        return '#' * new_level + match.group(2)
-    return re.sub(r'^(#{1,6})([\s#])', replacer, content, flags=re.MULTILINE)
 
 
 class extractor:
@@ -89,7 +86,6 @@ class extractor:
         """
         match file_obj.type:
             case 'presentation':
-                print(f"Extracting presentation content from {file_obj.file_path}")
                 # default extraction
                 if file_obj.github_url:
                     file_obj.extend_section_content(f"[{file_obj.file_title}]({file_obj.github_url})\n\n")
@@ -99,7 +95,6 @@ class extractor:
                 pass
 
             case 'index': 
-                print(f"Extracting index content from {file_obj.file_path}")
                 # default extraction + index section walk
                 if file_obj.github_url:
                     file_obj.extend_section_content(f"[{file_obj.file_title}]({file_obj.github_url})\n\n")
@@ -108,10 +103,9 @@ class extractor:
                 file_obj.extend_section_content(self.extract_description(file_obj.content))
                 # walk index sections and recursively call this fucntion to extract presentable content from linked files
 
-                for sub in walk_index_sections(file_obj): # bulletpoints
-                    print(f"Extracting subproject content from {sub.file_path} linked in index {file_obj.file_path}")
+                for sub in walk_index_sections(file_obj, source_path): # bulletpoints
                     self.extract_presentable(sub)
-                    file.obj.extend_section_content(sub.section_content)
+                    file_obj.extend_section_content(sub.section_content)
                 pass
 
             case 'subproject': ## bulletpoint index references
@@ -127,7 +121,6 @@ class file_object:
         self.file_path = file_path
         self.file_title = os.path.splitext(os.path.basename(file_path))[0]
         self.section_content = None
-        ## check type
         """
         Check the type of the file based on its frontmatter.
         This can be used to determine if the file is an index or a presentation.
@@ -137,15 +130,17 @@ class file_object:
                 self.content = file.read()
         except (UnicodeDecodeError, OSError):
             return
-        frontmatter = parse_frontmatter(self.content)
-        if 'Index' in frontmatter:
+        
+        if re.search(r'^---.*?\bindex\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
             self.type = 'index'
-        elif 'subproject' in frontmatter:
-            self.type = 'subproject' #this is for indexxed pages
+        elif re.search(r'^---.*?\bsubproject\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
+            self.type = 'subproject'
         else:
             self.type = 'presentation'
         ## update github url if it exists in frontmatter
+        frontmatter = parse_frontmatter(self.content)
         self.github_url = frontmatter.get('github', None)
+        print(f"Created file object for {self.file_path} with type {self.type}")
 
     def extend_section_content(self, content):
         if self.section_content is None:
