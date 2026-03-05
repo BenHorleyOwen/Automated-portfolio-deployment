@@ -1,7 +1,6 @@
 import os
 import re
 import argparse
-from unittest import case
 
 """Script to generate README.md from presentable files in a repository.
 Looks for files marked with 'presentable' in frontmatter and extracts
@@ -36,9 +35,7 @@ def search_for_presentable_files(repo_path):
                 except (UnicodeDecodeError, OSError):
                     continue
                 if re.search(r'^---.*?\bpresentable\b.*?---', content, re.IGNORECASE | re.DOTALL):
-                    file_obj = file_object(file_path)
-                    file_obj.check_type()
-                    presentable_files.append(file_obj)
+                    presentable_files.append(file_object(file_path))
     return presentable_files
 
 
@@ -92,23 +89,27 @@ class extractor:
         """
         match file_obj.type:
             case 'presentation':
+                print(f"Extracting presentation content from {file_obj.file_path}")
                 # default extraction
                 if file_obj.github_url:
-                    file_obj.extend_section_content(f"### [{file_obj.file_title}]({file_obj.github_url})\n\n")
+                    file_obj.extend_section_content(f"[{file_obj.file_title}]({file_obj.github_url})\n\n")
                 else:
-                    file_obj.extend_section_content(f"### {file_obj.file_title}\n\n")
+                    file_obj.extend_section_content(f"{file_obj.file_title}\n\n")
                 file_obj.extend_section_content(self.extract_description(file_obj.content))
                 pass
 
             case 'index': 
+                print(f"Extracting index content from {file_obj.file_path}")
                 # default extraction + index section walk
                 if file_obj.github_url:
-                    file_obj.extend_section_content(f"### [{file_obj.file_title}]({file_obj.github_url})\n\n")
+                    file_obj.extend_section_content(f"[{file_obj.file_title}]({file_obj.github_url})\n\n")
                 else:
-                    file_obj.extend_section_content(f"### {file_obj.file_title}\n\n")
+                    file_obj.extend_section_content(f"{file_obj.file_title}\n\n")
                 file_obj.extend_section_content(self.extract_description(file_obj.content))
                 # walk index sections and recursively call this fucntion to extract presentable content from linked files
+
                 for sub in walk_index_sections(file_obj): # bulletpoints
+                    print(f"Extracting subproject content from {sub.file_path} linked in index {file_obj.file_path}")
                     self.extract_presentable(sub)
                     file.obj.extend_section_content(sub.section_content)
                 pass
@@ -179,3 +180,10 @@ with open(readme_path, 'w', encoding='utf-8') as readme_file: # generate README 
         readme_file.write(f"### {file.section_content}\n\n")
 
 print(f'Generated README at {readme_path} from {len(presentable_files)} sections.')
+
+'''current state
+- script is back to working as originally intended, indexes are not parsed yet though.
+- check regex matches correctly
+- need to modify pipeline now that description only call is gone
+
+'''
