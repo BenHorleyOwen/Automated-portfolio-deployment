@@ -100,7 +100,7 @@ class extractor:
                     file_obj.extend_section_content(f"[{file_obj.file_title}]({file_obj.github_url})\n\n")
                 else:
                     file_obj.extend_section_content(f"{file_obj.file_title}\n\n")
-                file_obj.extend_section_content(self.extract_description(file_obj.content))
+                file_obj.extend_section_content(f"{self.extract_description(file_obj.content)}\n\n")
                 # walk index sections and recursively call this fucntion to extract presentable content from linked files
 
                 for sub in walk_index_sections(file_obj, source_path): # bulletpoints
