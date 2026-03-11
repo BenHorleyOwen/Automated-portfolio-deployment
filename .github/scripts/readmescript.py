@@ -178,8 +178,5 @@ with open(readme_path, 'w', encoding='utf-8') as readme_file: # generate README 
 print(f'Generated README at {readme_path} from {len(presentable_files)} sections.')
 
 '''current state
-- script is back to working as originally intended, indexes are not parsed yet though.
-- check regex matches correctly
-- need to modify pipeline now that description only call is gone
 
 '''
