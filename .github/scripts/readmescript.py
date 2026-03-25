@@ -109,7 +109,10 @@ class extractor:
                 pass
 
             case 'subproject': ## bulletpoint index references
-                file_obj.extend_section_content(f"- [{file_obj.file_title}]({file_obj.github_url}): {self.extract_description(file_obj.content)}\n\n")
+                if file_obj.github_url:
+                    file_obj.extend_section_content(f"- [{file_obj.file_title}]({file_obj.github_url}): {self.extract_description(file_obj.content)}\n\n")
+                else:
+                    file_obj.extend_section_content(f"- {file_obj.file_title}: {self.extract_description(file_obj.content)}\n\n")
                 pass
 
 class file_object:
