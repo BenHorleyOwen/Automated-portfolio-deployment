@@ -136,9 +136,11 @@ class file_object:
         
         if re.search(r'^---.*?\bindex\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
             self.type = 'index'
+        elif re.search(r'^---.*?\bpresentable\b.*?---', self.content, re.IGNORECASE | re.DOTALL): #assigns presentation before subproject
+            self.type = 'presentation'
         elif re.search(r'^---.*?\bsubproject\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
             self.type = 'subproject'
-        else:
+        else: # defaults to presentation.
             self.type = 'presentation'
         ## update github url if it exists in frontmatter
         frontmatter = parse_frontmatter(self.content)
