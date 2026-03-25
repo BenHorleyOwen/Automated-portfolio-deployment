@@ -113,7 +113,7 @@ class extractor:
                     file_obj.extend_section_content(f"- [{file_obj.file_title}]({file_obj.github_url}): {self.extract_description(file_obj.content)}\n\n")
                 else:
                     file_obj.extend_section_content(f"- {file_obj.file_title}: {self.extract_description(file_obj.content)}\n\n")
-                pass
+                pass 
 
 class file_object:
     """
@@ -142,6 +142,15 @@ class file_object:
             self.type = 'subproject'
         else: # defaults to presentation.
             self.type = 'presentation'
+
+        ## assign priority based on type
+        if re.search(r'^---.*?\blowprio\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
+            self.priority = 1
+        elif re.search(r'^---.*?\bhighprio\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
+            self.priority = 3
+        else:
+            self.priority = 2
+
         ## update github url if it exists in frontmatter
         frontmatter = parse_frontmatter(self.content)
         self.github_url = frontmatter.get('github', None)
@@ -165,8 +174,9 @@ template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Templa
 
 
 # write README
-presentable_files = search_for_presentable_files(source_path) 
-extractor_instance = extractor() 
+presentable_files = search_for_presentable_files(source_path) # generates the file objects
+presentable_files = sorted(presentable_files, key=lambda x: x.priority) # sorts the created objects
+extractor_instance = extractor()
 os.makedirs(destination_path, exist_ok=True)
 readme_path = os.path.join(destination_path, 'README.md')
 
@@ -181,7 +191,3 @@ with open(readme_path, 'w', encoding='utf-8') as readme_file: # generate README 
         readme_file.write("\n\n---\n\n")
 
 print(f'Generated README at {readme_path} from {len(presentable_files)} sections.')
-
-'''current state
-
-'''
