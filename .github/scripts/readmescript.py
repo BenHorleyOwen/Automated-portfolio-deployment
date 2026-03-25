@@ -145,9 +145,9 @@ class file_object:
 
         ## assign priority based on type
         if re.search(r'^---.*?\blowprio\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
-            self.priority = 1
-        elif re.search(r'^---.*?\bhighprio\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
             self.priority = 3
+        elif re.search(r'^---.*?\bhighprio\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
+            self.priority = 1
         else:
             self.priority = 2
 
