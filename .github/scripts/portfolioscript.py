@@ -42,11 +42,12 @@ def yml_write(file_obj, yml_file):
     yml_file.write(f"    description: |\n")
     for line in file_obj.description.splitlines():
         yml_file.write(f"      {line}\n")
-    yml_file.write("\n")
     if hasattr(file_obj, 'subs'):
+        yml_file.write("\n")
         yml_file.write(f"    subprojects: [{', '.join(sub.file_title for sub in file_obj.subs)}]\n")
         for sub in file_obj.subs:
             yml_write(sub, yml_file)
+    yml_file.write("\n")
     
 
 
