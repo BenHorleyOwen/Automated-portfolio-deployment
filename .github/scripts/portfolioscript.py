@@ -37,8 +37,12 @@ def yml_write(file_obj, yml_file):
     project_name = os.path.splitext(os.path.basename(file_obj.file_path))[0]
     yml_file.write(f"  - name: {project_name}\n")
     yml_file.write(f"    type: [{file_obj.type}]\n")
-    yml_file.write(f"    repo: {file_obj.github_url}\n")
-    yml_file.write(f"    skills: [{file_obj.skills}]\n")
+    if file_obj.github_url:
+        yml_file.write(f"    repo: {file_obj.github_url}\n")
+    else:       yml_file.write(f"    repo: null\n")
+    if file_obj.skills:
+        yml_file.write(f"    skills: [{file_obj.skills.lower()}]\n")
+    else:        yml_file.write(f"    skills: []\n")
     yml_file.write(f"    description: |\n")
     for line in file_obj.description.splitlines():
         yml_file.write(f"      {line}\n")
