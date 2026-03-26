@@ -38,8 +38,8 @@ jobs:
         with:
           python-version: '3.13'
       - name: Create output dir
-        run: python ./source/.github/scripts/portfolioscript.py --source ./vaults/${{ inputs.source_path }} --destination ./_data
-      - name: Push to README if changes present.
+        run: python ./source/.github/scripts/portfolioscript.py --source ./${{ inputs.source_path }} --destination ./_data
+      - name: Push to portfolio if changes present.
         shell: bash
         env:
           CI_COMMIT_MESSAGE: update portfolio pages with latest project information
