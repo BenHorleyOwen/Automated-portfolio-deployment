@@ -154,6 +154,7 @@ class file_object:
         ## update github url if it exists in frontmatter
         frontmatter = parse_frontmatter(self.content)
         self.github_url = frontmatter.get('github', None)
+        self.skills = frontmatter.get('skills', None) # can be used in the future for skill extraction in portfolio script
         print(f"Created file object for {self.file_path} with type {self.type}")
 
     def extend_section_content(self, content):
