@@ -24,7 +24,7 @@ jobs:
       - name: Checkout ObsidianVaults (content)
         uses: actions/checkout@v4
         with:
-          repository: BenHorleyOwen/BenHorleyOwen.github.io
+          repository: BenHorleyOwen/ObsidianVaults
           path: vaults
           token: ${{ secrets.TOKEN }}
       - name: Checkout profile
@@ -38,7 +38,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Create output yml
-        run: python ./source/.github/scripts/portfolioscript.py --source ./${{ inputs.source_path }} --destination ./_data
+        run: python ./source/.github/scripts/portfolioscript.py --source ./${{ inputs.source_path }} --destination ./profile/_data
       - name: Push to portfolio if changes present.
         shell: bash
         env:
