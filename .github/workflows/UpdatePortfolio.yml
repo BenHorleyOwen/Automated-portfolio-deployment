@@ -37,7 +37,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.13'
-      - name: Create output dir
+      - name: Create output yml
         run: python ./source/.github/scripts/portfolioscript.py --source ./${{ inputs.source_path }} --destination ./_data
       - name: Push to portfolio if changes present.
         shell: bash
