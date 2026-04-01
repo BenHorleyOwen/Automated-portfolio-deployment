@@ -163,32 +163,34 @@ class file_object:
         else:
             self.section_content += content
 
-# Command-line interface
-parser = argparse.ArgumentParser(description='Generate README from presentable files.')
-parser.add_argument('--destination', type=str, required=True, help='Path to output directory')
-parser.add_argument('--source', type=str, required=True, help='Path to source directory')
-args = parser.parse_args()
 
-destination_path = args.destination
-source_path = args.source
-template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Template.md')
+if __name__ == '__main__': # main function to generate README.md from presentable files in a repository
+    # Command-line interface
+    parser = argparse.ArgumentParser(description='Generate README from presentable files.')
+    parser.add_argument('--destination', type=str, required=True, help='Path to output directory')
+    parser.add_argument('--source', type=str, required=True, help='Path to source directory')
+    args = parser.parse_args()
+
+    destination_path = args.destination
+    source_path = args.source
+    template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Template.md')
 
 
-# write README
-presentable_files = search_for_presentable_files(source_path) # generates the file objects
-presentable_files = sorted(presentable_files, key=lambda x: x.priority) # sorts the created objects
-extractor_instance = extractor()
-os.makedirs(destination_path, exist_ok=True)
-readme_path = os.path.join(destination_path, 'README.md')
+    # write README
+    presentable_files = search_for_presentable_files(source_path) # generates the file objects
+    presentable_files = sorted(presentable_files, key=lambda x: x.priority) # sorts the created objects
+    extractor_instance = extractor()
+    os.makedirs(destination_path, exist_ok=True)
+    readme_path = os.path.join(destination_path, 'README.md')
 
-with open(template_path, 'r', encoding='utf-8') as template_file:
-    template_content = template_file.read()
+    with open(template_path, 'r', encoding='utf-8') as template_file:
+        template_content = template_file.read()
 
-with open(readme_path, 'w', encoding='utf-8') as readme_file: # generate README content
-    readme_file.write(template_content + "\n\n")
-    for file in presentable_files:
-        extractor_instance.extract_presentable(file)
-        readme_file.write(f"### {file.section_content}\n\n")
-        readme_file.write("\n\n---\n\n")
+    with open(readme_path, 'w', encoding='utf-8') as readme_file: # generate README content
+        readme_file.write(template_content + "\n\n")
+        for file in presentable_files:
+            extractor_instance.extract_presentable(file)
+            readme_file.write(f"### {file.section_content}\n\n")
+            readme_file.write("\n\n---\n\n")
 
-print(f'Generated README at {readme_path} from {len(presentable_files)} sections.')
+    print(f'Generated README at {readme_path} from {len(presentable_files)} sections.')
