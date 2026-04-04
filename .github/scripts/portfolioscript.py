@@ -34,6 +34,7 @@ def project_yml_write(file_obj, yml_file):
     written as function to allow for subproject recursive callling.
     """
     project_name = os.path.splitext(os.path.basename(file_obj.file_path))[0]
+    yml_file.write("\n")
     yml_file.write(f"  - name: {project_name}\n")
     yml_file.write(f"    type: [{file_obj.type}]\n")
     if file_obj.github_url:
@@ -46,11 +47,9 @@ def project_yml_write(file_obj, yml_file):
     for line in file_obj.description.splitlines():
         yml_file.write(f"      {line}\n")
     if hasattr(file_obj, 'subs'):
-        yml_file.write("\n")
         yml_file.write(f"    subprojects: [{', '.join(sub.file_title for sub in file_obj.subs)}]\n")
         for sub in file_obj.subs:
             project_yml_write(sub, yml_file)
-    yml_file.write("\n") #the last subproject in the list gets an extra new line, i do not care in the slightest
     
 
 
