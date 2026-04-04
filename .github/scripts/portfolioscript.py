@@ -37,6 +37,7 @@ def project_yml_write(file_obj, yml_file):
     yml_file.write("\n")
     yml_file.write(f"  - name: {project_name}\n")
     yml_file.write(f"    type: [{file_obj.type}]\n")
+    yml_file.write(f"    priority: {file_obj.priority}\n")
     if file_obj.github_url:
         yml_file.write(f"    repo: {file_obj.github_url}\n")
     else:       yml_file.write(f"    repo: null\n")
