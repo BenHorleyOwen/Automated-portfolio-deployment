@@ -42,7 +42,7 @@ def project_yml_write(file_obj, yml_file):
         yml_file.write(f"    repo: {file_obj.github_url}\n")
     else:       yml_file.write(f"    repo: null\n")
     if file_obj.skills:
-        yml_file.write(f"    skills: [{file_obj.skills.lower()}]\n")
+        yml_file.write(f"    skills: [{file_obj.skills}]\n") 
     else:        yml_file.write(f"    skills: []\n")
     yml_file.write(f"    description: |\n")
     for line in file_obj.description.splitlines():
