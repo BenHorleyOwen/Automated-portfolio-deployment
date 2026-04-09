@@ -128,10 +128,18 @@ class file_object:
         Check the type of the file based on its frontmatter.
         This can be used to determine if the file is an index or a presentation.
         """
+        # Defaults
+        self.content = ''
+        self.type = 'presentation'
+        self.priority = 2
+        self.github_url = None
+        self.skills = None
+
         try:
             with open(self.file_path, 'r', encoding='utf-8') as file:
                 self.content = file.read()
         except (UnicodeDecodeError, OSError):
+            print(f"Error reading file {self.file_path}. Skipping.")
             return
         
         if re.search(r'^---.*?\bindex\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
