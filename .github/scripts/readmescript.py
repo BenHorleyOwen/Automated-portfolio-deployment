@@ -35,7 +35,10 @@ def search_for_presentable_files(repo_path):
                 except (UnicodeDecodeError, OSError):
                     continue
                 if re.search(r'^---.*?\bpresentable\b.*?---', content, re.IGNORECASE | re.DOTALL):
-                    presentable_files.append(file_object(file_path))
+                    try:
+                        presentable_files.append(file_object(file_path))
+                    except ValueError as e:
+                        print(f"Skipping {file_path}: {e}")
     return presentable_files
 
 
@@ -54,8 +57,11 @@ def walk_index_sections(file_obj, repo_path):
     for section_match in pattern.finditer(file_obj.content):
         section_body = section_match.group(1)
         for link_match in link_pattern.finditer(section_body):
-            subpath = os.path.join(repo_path, f"{link_match.group(1)}.md")
-            subprojects.append(file_object(subpath))
+                subpath = os.path.join(repo_path, f"{link_match.group(1)}.md")
+                try:
+                    subprojects.append(file_object(subpath))
+                except ValueError as e:
+                    print(f"Skipping linked file {subpath}: {e}")
     return subprojects
 
 
@@ -128,19 +134,11 @@ class file_object:
         Check the type of the file based on its frontmatter.
         This can be used to determine if the file is an index or a presentation.
         """
-        # Defaults
-        self.content = ''
-        self.type = 'presentation'
-        self.priority = 2
-        self.github_url = None
-        self.skills = None
-
         try:
             with open(self.file_path, 'r', encoding='utf-8') as file:
                 self.content = file.read()
-        except (UnicodeDecodeError, OSError):
-            print(f"Error reading file {self.file_path}. Skipping.")
-            return
+        except (UnicodeDecodeError, OSError) as e:
+            raise ValueError(f"Could not read file {self.file_path}: {e}") from e
         
         if re.search(r'^---.*?\bindex\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
             self.type = 'index'
