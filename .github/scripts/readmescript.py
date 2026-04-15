@@ -169,6 +169,9 @@ class file_object:
         else:
             self.section_content += content
 
+def checkforlinks(content): # exclude files without any hyperlinks from being included in README
+    """Check if the content contains any links"""
+    return bool(re.search(r'\[.*?\]\(.*?\)', content))
 
 if __name__ == '__main__': # main function to generate README.md from presentable files in a repository
     # Command-line interface
@@ -196,7 +199,7 @@ if __name__ == '__main__': # main function to generate README.md from presentabl
         readme_file.write(template_content + "\n\n")
         for file in presentable_files:
             extractor_instance.extract_presentable(file)
-            readme_file.write(f"### {file.section_content}\n\n")
-            readme_file.write("\n\n---\n\n")
-
+            if file.section_content and checkforlinks(file.section_content):
+                readme_file.write(f"### {file.section_content}\n\n")
+                readme_file.write("\n\n---\n\n")
     print(f'Generated README at {readme_path} from {len(presentable_files)} sections.')
