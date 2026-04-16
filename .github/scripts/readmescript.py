@@ -41,15 +41,15 @@ def search_for_presentable_files(repo_path):
                         print(f"Skipping {file_path}: {e}")
     return presentable_files
 
+# moved to index extraction logic in extractor class.
+""" def walk_index_sections(file_obj, repo_path):
 
-def walk_index_sections(file_obj, repo_path):
-    """
     Walk through index sections and extract md links.
     md links are followed and their content is extracted.
     :param file_obj: file object to walk index sections from
     :param repo_path: path to the repository to resolve linked files
     :return: list of file objects that are linked in index sections with their extracted content
-    """
+
     subprojects = []
     pattern = re.compile(r'(?m)^## Index\s*\n(.*?)(?=^# |\Z)', re.DOTALL)
     link_pattern = re.compile(r'\[\[([^\]|]+)(?:\|[^\]]*)?\]\]')
@@ -62,7 +62,7 @@ def walk_index_sections(file_obj, repo_path):
                     subprojects.append(file_object(subpath))
                 except ValueError as e:
                     print(f"Skipping linked file {subpath}: {e}")
-    return subprojects
+    return subprojects """
 
 
 class extractor:
@@ -74,23 +74,89 @@ class extractor:
     def __init__(self):
         pass
     
-    def extract_description(self, content):
+    def extract_description(self, file_obj): 
         """Extract only the content under the ## Description heading."""
         match = re.search(
             r'(?im)^#{1,6}\s*description\s*$\n(.*?)(?=^#{1,6}\s|\Z)',
-            content,
+            file_obj.content,
+            re.DOTALL
+        )
+        if match: #upon finding a match the file object information is updated within the method.
+        #     return match.group(1).strip()
+        # return file_obj.content.strip()  
+            if file_obj.github_url:
+                file_obj.extend_section_content(f"[{file_obj.file_title}]({file_obj.github_url})\n\n")
+            else:
+                file_obj.extend_section_content(f"{file_obj.file_title}\n\n")
+            file_obj.extend_section_content(match.group(1).strip())
+
+    def extract_implementation(self, file_obj): #only used for portfolioscript. 
+        """Extract only the content under the ## Implementation heading."""
+        match = re.search(
+            r'(?im)^#{1,6}\s*implementation\s*$\n(.*?)(?=^#{1,6}\s|\Z)',
+            file_obj.content,
             re.DOTALL
         )
         if match:
             return match.group(1).strip()
-        return content.strip()
+        return file_obj.content.strip()
+
+    def extract_index(self, file_obj): #replace walk_index_sections
+        '''
+        Walk through index sections and extract md links.
+        md links are followed and their content is extracted.
+        :param file_obj: file object to walk index sections from
+        :param repo_path: path to the repository to resolve linked files
+        :return: list of file objects that are linked in index sections with their extracted content
+        '''
+        subprojects = []
+        pattern = re.compile(r'(?m)^## Index\s*\n(.*?)(?=^# |\Z)', re.DOTALL)
+        link_pattern = re.compile(r'\[\[([^\]|]+)(?:\|[^\]]*)?\]\]')
+
+        for section_match in pattern.finditer(file_obj.content):
+            section_body = section_match.group(1)
+            for link_match in link_pattern.finditer(section_body):
+                    subpath = os.path.join(source_path, f"{link_match.group(1)}.md")
+                    try:
+                        subprojects.append(file_object(subpath))
+                    except ValueError as e:
+                        print(f"Skipping linked file {subpath}: {e}")
+                        
+        for subproject in subprojects:
+            self.extract_subproject(subproject)
+            file_obj.extend_section_content(subproject.section_content)
+    
+    def extract_subproject(self, file_obj): 
+        """extract subproject formatted content for index extraction."""
+        if file_obj.github_url:
+            file_obj.extend_section_content(f"- [{file_obj.file_title}]({file_obj.github_url}): {self.extract_description(file_obj.content)}\n\n")
+        else:
+            file_obj.extend_section_content(f"- {file_obj.file_title}: {self.extract_description(file_obj.content)}\n\n")
+
+    def extract_links(self, file_obj):
+        # parses wiki links and transforms them into github links from the path of the wiki link file object.
+        """Extract all wiki links from the content."""
+        return re.findall(r'\[\[([^\]|]+)(?:\|[^\]]*)?\]\]', file_obj.content)
 
     def extract_presentable(self, file_obj):
         """
         Extract presentable content from a file.
         :param file_path: path to the file to extract presentable content from
         """
-        match file_obj.type:
+        #fileobj.extractions dict determines which extractions to perform and then this method extends the file object's section_content with the extracted content.
+        extractors = { #easy way to extend future logic
+            'description': self.extract_description, #description comes first
+            'index': self.extract_index,
+            'implementation': self.extract_implementation
+            #'subproject': self.extract_links, index calls this method, not a standalone extraction
+        }
+        for key, extractor in extractors.items():
+            if file_obj.extractions.get(key):
+                extractor(file_obj)
+        
+
+        #old
+"""         match file_obj.type:
             case 'presentation':
                 # default extraction
                 if file_obj.github_url:
@@ -119,7 +185,7 @@ class extractor:
                     file_obj.extend_section_content(f"- [{file_obj.file_title}]({file_obj.github_url}): {self.extract_description(file_obj.content)}\n\n")
                 else:
                     file_obj.extend_section_content(f"- {file_obj.file_title}: {self.extract_description(file_obj.content)}\n\n")
-                pass 
+                pass  """
 
 class file_object:
     """
@@ -127,13 +193,23 @@ class file_object:
     This can be used to store the file path, title, github url, and extracted section content.
     """
     def __init__(self, file_path):
-        self.file_path = file_path
-        self.file_title = os.path.splitext(os.path.basename(file_path))[0]
-        self.section_content = None
         """
         Check the type of the file based on its frontmatter.
         This can be used to determine if the file is an index or a presentation.
         """
+
+        self.file_path = file_path
+        self.file_title = os.path.splitext(os.path.basename(file_path))[0]
+        self.section_content = None
+
+        #booleans based on which exractions are required
+        self.extractions = {
+            'description': False,
+            'index': False,
+            'implementation': False,
+            'subproject': False
+        }
+
         try:
             with open(self.file_path, 'r', encoding='utf-8') as file:
                 self.content = file.read()
@@ -141,13 +217,13 @@ class file_object:
             raise ValueError(f"Could not read file {self.file_path}: {e}") from e
         
         if re.search(r'^---.*?\bindex\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
-            self.type = 'index'
-        elif re.search(r'^---.*?\bpresentable\b.*?---', self.content, re.IGNORECASE | re.DOTALL): #assigns presentation before subproject
-            self.type = 'presentation'
-        elif re.search(r'^---.*?\bsubproject\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
-            self.type = 'subproject'
-        else: # defaults to presentation.
-            self.type = 'presentation'
+            self.extractions['index'] = True
+        if re.search(r'^---.*?\bpresentable\b.*?---', self.content, re.IGNORECASE | re.DOTALL): #presentable is used for default extraction, which always wants description.
+            self.extractions['description'] = True
+        if re.search(r'^---.*?\bsubproject\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
+            self.extractions['subproject'] = True
+        if re.search(r'^---.*?\bimplementation\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
+            self.extractions['implementation'] = True
 
         ## assign priority based on type
         if re.search(r'^---.*?\blowprio\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
@@ -161,7 +237,7 @@ class file_object:
         frontmatter = parse_frontmatter(self.content)
         self.github_url = frontmatter.get('github', None)
         self.skills = frontmatter.get('skills', None) # can be used in the future for skill extraction in portfolio script
-        print(f"Created file object for {self.file_path} with type {self.type}")
+        print(f"Created file object for {self.file_path} with extractions {self.extractions} and priority {self.priority}.")
 
     def extend_section_content(self, content):
         if self.section_content is None:
