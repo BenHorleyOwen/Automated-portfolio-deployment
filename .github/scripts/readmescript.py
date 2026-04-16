@@ -128,10 +128,15 @@ class extractor:
     
     def extract_subproject(self, file_obj): 
         """extract subproject formatted content for index extraction."""
+        match = re.search(
+                r'(?im)^#{1,6}\s*description\s*$\n(.*?)(?=^#{1,6}\s|\Z)',
+                file_obj.content,
+                re.DOTALL
+            )
         if file_obj.github_url:
-            file_obj.extend_section_content(f"- [{file_obj.file_title}]({file_obj.github_url}): {self.extract_description(file_obj.content)}\n\n")
+            file_obj.extend_section_content(f"- [{file_obj.file_title}]({file_obj.github_url}): {match.group(1).strip()}\n\n")
         else:
-            file_obj.extend_section_content(f"- {file_obj.file_title}: {self.extract_description(file_obj.content)}\n\n")
+            file_obj.extend_section_content(f"- {file_obj.file_title}: {match.group(1).strip()}\n\n")
 
     def extract_links(self, file_obj):
         # parses wiki links and transforms them into github links from the path of the wiki link file object.
