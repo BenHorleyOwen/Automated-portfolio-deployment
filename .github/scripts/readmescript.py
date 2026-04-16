@@ -41,29 +41,6 @@ def search_for_presentable_files(repo_path):
                         print(f"Skipping {file_path}: {e}")
     return presentable_files
 
-# moved to index extraction logic in extractor class.
-""" def walk_index_sections(file_obj, repo_path):
-
-    Walk through index sections and extract md links.
-    md links are followed and their content is extracted.
-    :param file_obj: file object to walk index sections from
-    :param repo_path: path to the repository to resolve linked files
-    :return: list of file objects that are linked in index sections with their extracted content
-
-    subprojects = []
-    pattern = re.compile(r'(?m)^## Index\s*\n(.*?)(?=^# |\Z)', re.DOTALL)
-    link_pattern = re.compile(r'\[\[([^\]|]+)(?:\|[^\]]*)?\]\]')
-
-    for section_match in pattern.finditer(file_obj.content):
-        section_body = section_match.group(1)
-        for link_match in link_pattern.finditer(section_body):
-                subpath = os.path.join(repo_path, f"{link_match.group(1)}.md")
-                try:
-                    subprojects.append(file_object(subpath))
-                except ValueError as e:
-                    print(f"Skipping linked file {subpath}: {e}")
-    return subprojects """
-
 
 class extractor:
     """
@@ -158,39 +135,6 @@ class extractor:
         for key, extractor in extractors.items():
             if file_obj.extractions.get(key):
                 extractor(file_obj)
-        
-
-        #old
-"""         match file_obj.type:
-            case 'presentation':
-                # default extraction
-                if file_obj.github_url:
-                    file_obj.extend_section_content(f"[{file_obj.file_title}]({file_obj.github_url})\n\n")
-                else:
-                    file_obj.extend_section_content(f"{file_obj.file_title}\n\n")
-                file_obj.extend_section_content(self.extract_description(file_obj.content))
-                pass
-
-            case 'index': 
-                # default extraction + index section walk
-                if file_obj.github_url:
-                    file_obj.extend_section_content(f"[{file_obj.file_title}]({file_obj.github_url})\n\n")
-                else:
-                    file_obj.extend_section_content(f"{file_obj.file_title}\n\n")
-                file_obj.extend_section_content(f"{self.extract_description(file_obj.content)}\n\n")
-                # walk index sections and recursively call this fucntion to extract presentable content from linked files
-
-                for sub in walk_index_sections(file_obj, source_path): # bulletpoints
-                    self.extract_presentable(sub)
-                    file_obj.extend_section_content(sub.section_content)
-                pass
-
-            case 'subproject': ## bulletpoint index references
-                if file_obj.github_url:
-                    file_obj.extend_section_content(f"- [{file_obj.file_title}]({file_obj.github_url}): {self.extract_description(file_obj.content)}\n\n")
-                else:
-                    file_obj.extend_section_content(f"- {file_obj.file_title}: {self.extract_description(file_obj.content)}\n\n")
-                pass  """
 
 class file_object:
     """
