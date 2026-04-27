@@ -87,7 +87,7 @@ class extractor:
         :return: list of file objects that are linked in index sections with their extracted content
         '''
         subprojects = []
-        pattern = re.compile(r'(?m)^## Index\s*\n(.*?)(?=^# |\Z)', re.DOTALL)
+        pattern = re.compile(r'(?m)^## Index\s*\n(.*?)(?=^## |\Z)', re.DOTALL)
         link_pattern = re.compile(r'\[\[([^\]|]+)(?:\|[^\]]*)?\]\]')
 
         for section_match in pattern.finditer(file_obj.content):
@@ -95,7 +95,10 @@ class extractor:
             for link_match in link_pattern.finditer(section_body):
                     subpath = os.path.join(source_path, f"{link_match.group(1)}.md")
                     try:
-                        subprojects.append(file_object(subpath))
+                        tempobj = file_object(subpath) # force subproject extractions, the tag is redundant now but we can pretend :D
+                        tempobj.extractions['subproject'] = True
+                        tempobj.extractions['description'] = False
+                        subprojects.append(tempobj)
                     except ValueError as e:
                         print(f"Skipping linked file {subpath}: {e}")
                         
