@@ -66,6 +66,7 @@ class extractor:
             else:
                 file_obj.extend_section_content(f"{file_obj.file_title}\n\n")
             file_obj.extend_section_content(match.group(1).strip())
+        file_obj.extend_section_content("\n\n")
 
     def extract_implementation(self, file_obj): #only used for portfolioscript. 
         """Extract only the content under the ## Implementation heading."""
