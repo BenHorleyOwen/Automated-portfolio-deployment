@@ -164,6 +164,8 @@ class file_object:
                 self.content = file.read()
         except (UnicodeDecodeError, OSError) as e:
             raise ValueError(f"Could not read file {self.file_path}: {e}") from e
+        if re.search(r'^---.*?\bunpresentable\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
+            raise ValueError(f"File {self.file_path} is marked as unpresentable, skipping.")
         
         if re.search(r'^---.*?\bindex\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
             self.extractions['index'] = True
