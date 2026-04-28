@@ -73,7 +73,7 @@ def project_yml_write(file_obj, yml_file):
 
     yml_file.write("\n")
     yml_file.write(f"  - name: {project_name}\n")
-    yml_file.write(f"    type: [{', '.join(types)}]\n") #changed from a single value, might break website
+    #yml_file.write(f"    type: [{', '.join(types)}]\n") #changed from a single value, might break website
     yml_file.write(f"    priority: {file_obj.priority}\n")
     yml_file.write(f"    repo: {file_obj.github_url or 'null'}\n")
     yml_file.write(f"    skills: [{file_obj.skills or ''}]\n")
