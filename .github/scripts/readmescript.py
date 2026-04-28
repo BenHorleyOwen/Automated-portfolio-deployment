@@ -50,6 +50,13 @@ class extractor:
     """
     def __init__(self):
         pass
+
+    def extract_subtitle(self, file_obj):
+        """Extract file page name as a subtitle for presentation sections."""
+        if file_obj.github_url:
+            file_obj.extend_section_content(f"[{file_obj.file_title}]({file_obj.github_url})\n\n")
+        else:
+            file_obj.extend_section_content(f"{file_obj.file_title}\n\n")
     
     def extract_description(self, file_obj): 
         """Extract only the content under the ## Description heading."""
@@ -58,13 +65,7 @@ class extractor:
             file_obj.content,
             re.DOTALL
         )
-        if match: #upon finding a match the file object information is updated within the method.
-        #     return match.group(1).strip()
-        # return file_obj.content.strip()  
-            if file_obj.github_url:
-                file_obj.extend_section_content(f"[{file_obj.file_title}]({file_obj.github_url})\n\n")
-            else:
-                file_obj.extend_section_content(f"{file_obj.file_title}\n\n")
+        if match:
             file_obj.extend_section_content(match.group(1).strip())
         file_obj.extend_section_content("\n\n")
 
@@ -131,7 +132,8 @@ class extractor:
         """
         #fileobj.extractions dict determines which extractions to perform and then this method extends the file object's section_content with the extracted content.
         extractors = { #easy way to extend future logic
-            'description': self.extract_description, #description comes first
+            'subtitle': self.extract_subtitle, 
+            'description': self.extract_description, 
             'index': self.extract_index,
             'implementation': self.extract_implementation
             #'subproject': self.extract_links, index calls this method, not a standalone extraction
@@ -157,6 +159,7 @@ class file_object:
 
         #booleans based on which exractions are required
         self.extractions = {
+            'subtitle': False,
             'description': False,
             'index': False,
             'implementation': False,
@@ -174,6 +177,7 @@ class file_object:
         if re.search(r'^---.*?\bindex\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
             self.extractions['index'] = True
         if re.search(r'^---.*?\bpresentable\b.*?---', self.content, re.IGNORECASE | re.DOTALL): #presentable is used for default extraction, which always wants description.
+            self.extractions['subtitle'] = True
             self.extractions['description'] = True
         if re.search(r'^---.*?\bsubproject\b.*?---', self.content, re.IGNORECASE | re.DOTALL):
             self.extractions['subproject'] = True
